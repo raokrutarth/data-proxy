@@ -20,7 +20,7 @@ app = FastAPI()
 def root():
     return HTMLResponse(
         status_code=status.HTTP_200_OK,
-        content="<h1>REST Data Proxy</h1>"
+        content="<h1>REST Data Proxy. See /docs for available endpoints.</h1>"
     )
 
 
