@@ -15,6 +15,10 @@ poetry install
 export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 
 if [[ -z "${debug}" ]]; then
+
+    # Remove old DB data
+    rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
+
     echo "Running in production mode."
     # Production runtime
     #   - Use gunicorn+uvicorn for best performance. It defaults to port 8000. Which is what azure expects.
@@ -48,7 +52,7 @@ else
 
     poetry run gunicorn \
         --bind=0.0.0.0:8000 \
-        --workers 4 \
+        --workers 2 \
         --worker-class uvicorn.workers.UvicornWorker \
         --log-level info \
         main:app
