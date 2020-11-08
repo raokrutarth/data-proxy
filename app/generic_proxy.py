@@ -72,7 +72,7 @@ def _get_queue_sesssion(queue_name: str, queue_path: str) -> persistqueue.SQLite
     )
 
 
-def add_to_queue(queue_id: str, payload: dict):
+def _add_to_queue(queue_id: str, payload: dict):
     """
     Add the payload to the given queue. Create the queue if it doesn't exist.
     """
@@ -120,9 +120,9 @@ async def send_data(
     logging.info(
         f"User {username} requested to add payload {body} to generic event queue {queue_id}."
     )
-    background_tasks.add_task(add_to_queue, queue_id, body)
+    background_tasks.add_task(_add_to_queue, queue_id, body)
 
-    return dict(status="Event seheduled to be saved.")
+    return dict(status=f"Event scheduled to be saved in queue {queue_id}.")
 
 
 @router.get(

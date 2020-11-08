@@ -15,20 +15,25 @@ poetry install
 export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 
 if [[ -z "${debug}" ]]; then
+    echo "Running in production mode."
     # Production runtime
     #   - Use gunicorn+uvicorn for best performance. It defaults to port 8000. Which is what azure expects.
     #   - Use 2 workers given the free tier ony provisions 1 core.
     #   - Auth env vars come from the Azure runtime.
+    # TODO store log file in secure location
     poetry run gunicorn \
         --bind=0.0.0.0:8000 \
         --workers 4 \
         --worker-class uvicorn.workers.UvicornWorker \
         --log-level info \
-        --log-file data-proxy.log \
+        --log-file /tmp/data-proxy.log \
         main:app
 else
+    echo "Running in development mode."
     # start development server with simpler env variables that the
     # production OS will populate with actual values.
+    export WEBSITE_HOSTNAME="localhost:8000"
+
     export SLACK_PROXY_USERNAME=dev
     export SLACK_PROXY_PASSWORD=dev
     export SLACK_VERIFICATION_TOKEN=u8i
