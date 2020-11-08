@@ -12,7 +12,7 @@ export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 
 poetry run uvicorn \
     --host 0.0.0.0 \
-    --port ${1:-80} \
+    --port ${1:-443} \
     --log-level info \
     --workers 4 \
     main:app
