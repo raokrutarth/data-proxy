@@ -79,7 +79,7 @@ def get_latest_event(
     if not _EVENT_QUEUE:
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
-            content="No events received. "
+            content="No available events present."
         )
 
     log.info(f"Sending latest slack event to user {username}")
