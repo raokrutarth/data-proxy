@@ -22,9 +22,9 @@ while true; do curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept
 - Proper pre-push hooks: https://githooks.com/
 
   ```bash
-  echo "./scripts/format_and_lint.sh" > .git/hooks/pre-push.sh
-  echo "./scripts/test.sh" >> .git/hooks/pre-push.sh
-  chmod +x .git/hooks/pre-push.sh
+  echo "./scripts/format_and_lint.sh" > .git/hooks/pre-push
+  echo "./scripts/test.sh" >> .git/hooks/pre-push
+  chmod +x .git/hooks/pre-push
   ```
 
 ## TODOs
