@@ -15,3 +15,7 @@ def test_invalid_post():
 
 def test_authorized_get_event():
     pass
+
+
+def test_unauthorized_get_event():
+    pass
