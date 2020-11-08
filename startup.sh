@@ -16,4 +16,4 @@ export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 #     --log-level info \
 #     --workers 4 \
 #     main:app
-poetry run gunicorn -w 4 -k uvicorn.workers.UvicornWorker main:app
+poetry run gunicorn --bind=0.0.0.0 -w 4 -k uvicorn.workers.UvicornWorker main:app
