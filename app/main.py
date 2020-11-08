@@ -2,9 +2,9 @@ import logging
 import sys
 
 from fastapi import FastAPI, status
+from generic_proxy import router as generic_router
 from slack_proxy import router as slack_router
 from starlette.responses import HTMLResponse
-from generic_proxy import router as generic_router
 
 # configure logging with filename, function name and line numbers
 logging.basicConfig(
@@ -34,7 +34,4 @@ app.include_router(
     prefix="/slack_poxy",
 )
 
-app.include_router(
-    generic_router,
-    prefix="/generic_proxy"
-)
+app.include_router(generic_router, prefix="/generic_proxy")

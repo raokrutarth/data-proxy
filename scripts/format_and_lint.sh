@@ -20,4 +20,6 @@ poetry run isort \
 
 poetry run black ${SRC_DIRS}
 
-poetry run mypy ${SRC_DIRS}
+poetry run mypy \
+    --ignore-missing-imports \
+    ${SRC_DIRS}

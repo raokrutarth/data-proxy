@@ -1,9 +1,9 @@
 import logging
 import secrets
-import persistqueue
 from os import environ
 from typing import Any
 
+import persistqueue
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import create_model
@@ -112,6 +112,6 @@ def get_latest_event(
     log.info(f"Sending latest slack event to user {username}")
 
     return dict(
-            event=_EVENT_QUEUE.get(),
-            events_left_in_queue=_EVENT_QUEUE.size,
-        )
+        event=_EVENT_QUEUE.get(),
+        events_left_in_queue=_EVENT_QUEUE.size,
+    )
