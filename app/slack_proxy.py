@@ -1,13 +1,13 @@
-import secrets
 import logging
-from os import environ
+import secrets
 from collections import deque
+from os import environ
+from typing import Any
 
-from fastapi import Depends, HTTPException, status, APIRouter, Request, Body
-from starlette.responses import JSONResponse
+from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
-from typing import Union, Optional, Any
+from starlette.responses import JSONResponse
 
 log = logging.getLogger(__name__)
 
@@ -43,10 +43,10 @@ async def receive_event(
     body: Any = Body(...),
 ):
     """
-        Endpoint for slack events API verification and receive for
+    Endpoint for slack events API verification and receive for
 
-        https://api.slack.com/events/url_verification
-        https://api.slack.com/events-api#url_verification
+    https://api.slack.com/events/url_verification
+    https://api.slack.com/events-api#url_verification
     """
     if "token" not in body or "type" not in body:
         raise HTTPException(
@@ -60,13 +60,15 @@ async def receive_event(
             status_code=status.HTTP_200_OK,
             content=dict(
                 challenge=body["challenge"],
-            )
+            ),
         )
 
     logging.info(f"Adding payload {body} to slack event queue.")
     _EVENT_QUEUE.append(body)
 
-    return JSONResponse(status_code=status.HTTP_200_OK, content=dict(status="Event saved."))
+    return JSONResponse(
+        status_code=status.HTTP_200_OK, content=dict(status="Event saved.")
+    )
 
 
 @router.get("/event")
@@ -74,12 +76,12 @@ def get_latest_event(
     username: str = Depends(get_verified_username),
 ):
     """
-        ...
+    ...
     """
     if not _EVENT_QUEUE:
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
-            content="No available events present."
+            content="No available events present.",
         )
 
     log.info(f"Sending latest slack event to user {username}")
@@ -89,5 +91,5 @@ def get_latest_event(
         content=dict(
             event=_EVENT_QUEUE.popleft(),
             events_left_in_queue=len(_EVENT_QUEUE),
-        )
+        ),
     )

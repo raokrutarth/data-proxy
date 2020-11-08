@@ -1,13 +1,14 @@
 import logging
 import sys
+
 from fastapi import FastAPI, status
 from slack_proxy import router as slack_router
 from starlette.responses import HTMLResponse
 
 # configure logging with filename, function name and line numbers
 logging.basicConfig(
-    datefmt='%I:%M:%S %p %Z',
-    format='%(levelname)s [%(asctime)s - %(filename)s:%(lineno)s::%(funcName)s]\t%(message)s',
+    datefmt="%I:%M:%S %p %Z",
+    format="%(levelname)s [%(asctime)s - %(filename)s:%(lineno)s::%(funcName)s]\t%(message)s",
     stream=sys.stdout,
     level=logging.INFO,
 )
@@ -23,7 +24,7 @@ app = FastAPI(
 def root():
     return HTMLResponse(
         status_code=status.HTTP_200_OK,
-        content="<h1>REST Data Proxy. See /docs for available endpoints.</h1>"
+        content="<h1>REST Data Proxy. See /docs for available endpoints.</h1>",
     )
 
 

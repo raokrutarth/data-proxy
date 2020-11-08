@@ -19,3 +19,14 @@ while true; do curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept
 - https://github.com/windson/fastapi/tree/fastapi-postgresql-azure-deploy
 - https://github.com/MicrosoftDocs/azure-dev-docs/blob/master/articles/python/tutorial-deploy-app-service-on-linux-04.md
 - https://github.com/MicrosoftDocs/azure-dev-docs/issues/142
+- Proper pre-push hooks: https://githooks.com/
+
+  ```bash
+  echo "./scripts/format_and_lint.sh" > .git/hooks/pre-push.sh
+  echo "./scripts/test.sh" >> .git/hooks/pre-push.sh
+  chmod +x .git/hooks/pre-push.sh
+  ```
+
+## TODOs
+
+- Adopt tets github workflow and lint+test in build script from https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
