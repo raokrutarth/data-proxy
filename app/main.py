@@ -5,7 +5,6 @@ from fastapi import FastAPI, status
 from generic_proxy import router as generic_router
 from slack_proxy import router as slack_router
 from starlette.responses import HTMLResponse
-from os import environ
 
 # configure logging with filename, function name and line numbers
 logging.basicConfig(
@@ -27,7 +26,7 @@ def root():
     # hosted_site = environ.get("WEBSITE_HOSTNAME")
     redoc_button = "<button onclick=\"document.location='redoc'\">redoc</button>"
     docs_button = "<button onclick=\"document.location='docs'\">docs</button>"
-    message = f'REST Data Proxy<br>See {docs_button} or {redoc_button} for available endpoints.'
+    message = f"REST Data Proxy<br>See {docs_button} or {redoc_button} for available endpoints."
 
     return HTMLResponse(
         status_code=status.HTTP_200_OK,
@@ -50,7 +49,8 @@ def root():
         <p>%s</p>
     </div>
 </article>
-        """ % (message),
+        """
+        % (message),
     )
 
 
