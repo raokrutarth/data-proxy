@@ -25,6 +25,7 @@ jobs:
       with:
         platform: python
         platform-version: '3.8'
+        source-directory: app
 
     - name: 'Deploy to Azure Web App'
       uses: azure/webapps-deploy@v2
