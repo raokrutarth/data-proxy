@@ -69,6 +69,7 @@ def _get_queue_sesssion(queue_name: str, queue_path: str) -> persistqueue.SQLite
         name=queue_name,
         auto_commit=True,
         multithreading=True,
+        timeout=30,  # wait upto 30 sec to acquire a DB lock.
     )
 
 

@@ -27,6 +27,7 @@ _EVENT_QUEUE: persistqueue.SQLiteQueue = persistqueue.SQLiteQueue(
     path=environ.get("SLACK_EVENT_DB_PATH"),
     auto_commit=True,
     multithreading=True,
+    timeout=30,  # wait upto 30 sec to acquire a DB lock.
 )
 
 

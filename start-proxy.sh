@@ -36,7 +36,7 @@ else
 
     export SLACK_PROXY_USERNAME=dev
     export SLACK_PROXY_PASSWORD=dev
-    export SLACK_VERIFICATION_TOKEN=u8i
+    export SLACK_VERIFICATION_TOKEN=tk
     export SLACK_EVENT_DB_PATH="./slack_proxy_queue_db"
 
     export GENERIC_PROXY_USERNAME=dev
@@ -46,11 +46,10 @@ else
     # remove old DB data
     rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH}
 
-    poetry run uvicorn \
-        --reload \
-        --host 0.0.0.0 \
-        --port ${1:-8000} \
-        --log-level info \
+    poetry run gunicorn \
+        --bind=0.0.0.0:8000 \
         --workers 4 \
+        --worker-class uvicorn.workers.UvicornWorker \
+        --log-level info \
         main:app
 fi
