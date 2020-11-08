@@ -3,9 +3,11 @@ import logging
 from os import environ
 from collections import deque
 
-from fastapi import Depends, HTTPException, status, APIRouter, Request
+from fastapi import Depends, HTTPException, status, APIRouter, Request, Body
 from starlette.responses import JSONResponse
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
+from pydantic import BaseModel
+from typing import Union, Optional, Any
 
 log = logging.getLogger(__name__)
 
@@ -30,26 +32,36 @@ def get_verified_username(credentials: HTTPBasicCredentials = Depends(security))
     return credentials.username
 
 
+class Handshake(BaseModel):
+    token: str
+    challenge: str
+    type: str
+
+
 @router.post("/event")
-def receive_event(request: Request):
+async def receive_event(
+    body: Any = Body(...),
+):
     """
-        Endpoint for slack events API verification and receive for:
+        Endpoint for slack events API verification and receive for
+
         https://api.slack.com/events/url_verification
         https://api.slack.com/events-api#url_verification
     """
-    payload = request.json()
-    if "challenge" in payload:
+
+    if "challenge" in body:
         # verification step
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=dict(
-                challenge=payload["challenge"],
+                challenge=body["challenge"],
             )
         )
-    logging.info(f"Adding payload {payload} to slack event queue.")
-    _EVENT_QUEUE.append(payload)
 
-    return JSONResponse(status_code=status.HTTP_200_OK)
+    logging.info(f"Adding payload {body} to slack event queue.")
+    _EVENT_QUEUE.append(body)
+
+    return JSONResponse(status_code=status.HTTP_200_OK, content=dict(status="Event saved."))
 
 
 @router.get("/event")
