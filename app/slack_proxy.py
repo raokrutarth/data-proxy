@@ -1,12 +1,12 @@
 import logging
 import secrets
-from collections import deque
+import persistqueue
 from os import environ
 from typing import Any
 
 from fastapi import APIRouter, Body, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-from pydantic import BaseModel
+from pydantic import create_model
 from starlette.responses import JSONResponse
 
 log = logging.getLogger(__name__)
@@ -17,7 +17,17 @@ security = HTTPBasic()
 _USERNAME = environ.get("SLACK_PROXY_USERNAME")
 _PASSWORD = environ.get("SLACK_PROXY_PASSWORD")
 
-_EVENT_QUEUE: deque = deque(maxlen=1000)  # TODO check approx memory usage per event
+# Slack verification token to make sure only Slack can publish to the POST endpoint.
+# See https://api.slack.com/authentication/verifying-requests-from-slack#verifying-requests-from-slack-using-signing-secrets__a-recipe-for-security__step-by-step-walk-through-for-validating-a-request
+_SLACK_VERIFICATION_TOKEN = environ.get("SLACK_VERIFICATION_TOKEN")
+
+# Use a file system persisted FIFO queue that uses sqllite internally.
+# TODO check approx memory usage per event and restrict size
+_EVENT_QUEUE: persistqueue.SQLiteQueue = persistqueue.SQLiteQueue(
+    path=environ.get("SLACK_EVENT_DB_PATH"),
+    auto_commit=True,
+    multithreading=True,
+)
 
 
 def get_verified_username(credentials: HTTPBasicCredentials = Depends(security)):
@@ -39,30 +49,31 @@ def get_verified_username(credentials: HTTPBasicCredentials = Depends(security))
     return credentials.username
 
 
-class Handshake(BaseModel):
-    token: str
-    challenge: str
-    type: str
-
-
 @router.post("/event")
-async def receive_event(
+async def send_event(
     body: Any = Body(...),
 ):
     """
-    Endpoint for slack events API verification and receive for
-
-    https://api.slack.com/events/url_verification
-    https://api.slack.com/events-api#url_verification
+    Endpoint for slack events API verification and event ingestion.
     """
-    if "token" not in body or "type" not in body:
+    if "token" not in body:
         raise HTTPException(
-            status_code=status.HTTP_417_EXPECTATION_FAILED,
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail="Request body missing required fields.",
+        )
+    if _SLACK_VERIFICATION_TOKEN is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Missing verification token to accept new event.",
+        )
+    if not secrets.compare_digest(body["token"], _SLACK_VERIFICATION_TOKEN):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid token.",
         )
 
     if "challenge" in body:
-        # verification step
+        # slack event endpoint verification step.
         return JSONResponse(
             status_code=status.HTTP_200_OK,
             content=dict(
@@ -71,21 +82,28 @@ async def receive_event(
         )
 
     logging.info(f"Adding payload {body} to slack event queue.")
-    _EVENT_QUEUE.append(body)
+    _EVENT_QUEUE.put(body)
 
     return JSONResponse(
         status_code=status.HTTP_200_OK, content=dict(status="Event saved.")
     )
 
 
-@router.get("/event")
+@router.get(
+    "/event",
+    response_model=create_model(
+        "SlackEventWrapper",
+        event=(dict, ...),
+        events_left_in_queue=(int, ...),
+    ),
+)
 def get_latest_event(
     username: str = Depends(get_verified_username),
 ):
     """
     ...
     """
-    if not _EVENT_QUEUE:
+    if _EVENT_QUEUE.size == 0:
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
             content="No available events present.",
@@ -93,10 +111,7 @@ def get_latest_event(
 
     log.info(f"Sending latest slack event to user {username}")
 
-    return JSONResponse(
-        status_code=status.HTTP_200_OK,
-        content=dict(
-            event=_EVENT_QUEUE.popleft(),
-            events_left_in_queue=len(_EVENT_QUEUE),
-        ),
-    )
+    return dict(
+            event=_EVENT_QUEUE.get(),
+            events_left_in_queue=_EVENT_QUEUE.size,
+        )

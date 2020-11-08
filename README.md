@@ -1,6 +1,6 @@
 # data-proxy
 
-REST based data proxy server to facilitate data exchange between services in private networks
+REST based data proxy server to facilitate data exchange between services in private networks.
 
 ## Deployment
 
@@ -29,4 +29,5 @@ while true; do curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept
 
 ## TODOs
 
-- Adopt tets github workflow and lint+test in build script from https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
+- Adopt test github workflow and lint+test in build script from https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
+- Disable FTP based file access for repo. Prevents protected information from leaking.

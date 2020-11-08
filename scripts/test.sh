@@ -1,3 +1,3 @@
 #!/bin/bash -ex
 
-poetry run pytest tests/
+poetry run pytest ./tests
