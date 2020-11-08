@@ -6,6 +6,7 @@ if ! which poetry; then
     export PATH=${PATH}:"${HOME}/.poetry/bin"
 fi
 
+poetry config virtualenvs.in-project true
 poetry install
 
 export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
