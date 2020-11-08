@@ -17,10 +17,17 @@ security = HTTPBasic()
 _USERNAME = environ.get("SLACK_PROXY_USERNAME")
 _PASSWORD = environ.get("SLACK_PROXY_PASSWORD")
 
-_EVENT_QUEUE = deque(maxlen=1000)  # TODO check approx memory usage per event
+_EVENT_QUEUE: deque = deque(maxlen=1000)  # TODO check approx memory usage per event
 
 
 def get_verified_username(credentials: HTTPBasicCredentials = Depends(security)):
+    if _USERNAME is None or _PASSWORD is None:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Unable to authenticate.",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+
     correct_username = secrets.compare_digest(credentials.username, _USERNAME)
     correct_password = secrets.compare_digest(credentials.password, _PASSWORD)
     if not (correct_username and correct_password):
