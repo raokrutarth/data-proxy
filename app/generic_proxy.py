@@ -31,6 +31,7 @@ _DATA_QUEUES: persistqueue.PDict = persistqueue.PDict(
     path=environ.get("GENERIC_EVENT_DB_PATH"),
     name="generic_proxy_queues_mapppings",
     multithreading=True,
+    timeout=30,  # wait up to 30 sec to get DB lock.
 )
 
 
