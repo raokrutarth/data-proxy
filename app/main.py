@@ -13,7 +13,10 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-app = FastAPI()
+app = FastAPI(
+    title="Data Proxy",
+    description="REST based in-memory data proxy service.",
+)
 
 
 @app.get("/")
