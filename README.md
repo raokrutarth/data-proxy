@@ -1,10 +1,15 @@
 # data-proxy
 
-REST based data proxy server to facilitate data exchange between services in private networks.
+REST based data proxy server to facilitate data exchange between services in private networks and sporadic services.
 
 ## Deployment
 
-Code depoyed via Azure web application. REST server runs in to accept POST calls and make it available via authenticated GET calls.
+Code depoyed via Azure web application free tier. REST server accepts data in POST calls and makes it available via authenticated GET calls. See OpenAPI spec by running the server locally.
+
+```bash
+debug=1 ./start-proxy.sh
+# Navigate to localhost:8000/docs
+```
 
 ## Test
 

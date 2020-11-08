@@ -15,11 +15,11 @@ poetry install
 export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 
 if [[ -z "${debug}" ]]; then
+    echo "Running in production mode."
 
     # Remove old DB data
     rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
 
-    echo "Running in production mode."
     # Production runtime
     #   - Use gunicorn+uvicorn for best performance. It defaults to port 8000. Which is what azure expects.
     #   - Use 2 workers given the free tier ony provisions 1 core.
@@ -45,9 +45,9 @@ else
 
     export GENERIC_PROXY_USERNAME=dev
     export GENERIC_PROXY_PASSWORD=dev
-    export GENERIC_EVENT_DB_PATH="./generic_proxy_queue_db"
+    export GENERIC_EVENT_DB_PATH="./generic_proxy_queue_mapping_db"
 
-    # remove old DB data
+    # Remove old DB/queue data
     rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH}
 
     poetry run gunicorn \
