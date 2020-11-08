@@ -48,6 +48,11 @@ async def receive_event(
         https://api.slack.com/events/url_verification
         https://api.slack.com/events-api#url_verification
     """
+    if "token" not in body or "type" not in body:
+        raise HTTPException(
+            status_code=status.HTTP_417_EXPECTATION_FAILED,
+            detail="Request body missing required fields.",
+        )
 
     if "challenge" in body:
         # verification step
@@ -81,5 +86,8 @@ def get_latest_event(
 
     return JSONResponse(
         status_code=status.HTTP_200_OK,
-        content=dict(event=_EVENT_QUEUE.popleft())
+        content=dict(
+            event=_EVENT_QUEUE.popleft(),
+            events_left_in_queue=len(_EVENT_QUEUE),
+        )
     )
