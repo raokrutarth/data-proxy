@@ -27,7 +27,7 @@ if [[ -z "${debug}" ]]; then
     # TODO store log file in secure location
     poetry run gunicorn \
         --bind=0.0.0.0 \
-        --workers 4 \
+        --workers 2 \
         --worker-class uvicorn.workers.UvicornWorker \
         --log-level info \
         --log-file /tmp/data-proxy.log \
