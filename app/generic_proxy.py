@@ -83,9 +83,14 @@ def _get_queue_session(queue_name: str, queue_path: str) -> persistqueue.SQLiteQ
     )
 
 
-def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: dict):
+def _add_to_queue(
+    queue_mappings: persistqueue.PDict, queue_id: str, payload: dict
+) -> int:
     """
     Add the payload to the given queue. Create the queue if it doesn't exist.
+
+    Returns:
+        The new queue size.
     """
 
     q_name, q_path = _get_queue_details(queue_mappings, queue_id)
@@ -108,6 +113,7 @@ def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: di
     queue.put(payload)
     log.info(f"Added payload to queue with queue ID {queue_id}")
     log.debug(f"Payload values: {payload}")
+    return queue.size
 
 
 @router.post(
@@ -119,8 +125,12 @@ def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: di
             ...,
         ),
         sh256_hash=(str, ...),
+        position_in_queue=(int, ...),
     ),
-    description="Saves the request's body and returns the hash of the body for future content verification.",
+    description=(
+        "Saves the request's body and returns the hash of the body for future content verification. "
+        "Also returns the position in the queue for synchronous calls (-1 for async calls)."
+    ),
 )
 async def send_data(
     background_tasks: BackgroundTasks,
@@ -131,7 +141,7 @@ async def send_data(
     do_aync: bool = Query(
         True,
         title="Async",
-        description="When true, servers responds after a successful data save.",
+        description="When true, waits for the data to be persisted before responding.",
     ),
     username: str = Depends(get_verified_username),
     queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh),
@@ -143,20 +153,22 @@ async def send_data(
     alg.update(json.dumps(body, sort_keys=True).encode())
     body_hash = alg.hexdigest()
 
-    logging.debug(
-        f"User {username} requested to add payload {body} with hash {body_hash} to generic event queue {queue_id}."
+    logging.info(
+        f"User {username} requested to add payload with hash {body_hash} to generic event queue {queue_id}. Async enabled: {do_aync}"
     )
     if do_aync:
         background_tasks.add_task(_add_to_queue, queue_mappings, queue_id, body)
         return dict(
             status=f"Data scheduled to be saved in queue {queue_id}.",
             sh256_hash=body_hash,
+            position_in_queue=-1,
         )
 
-    _add_to_queue(queue_mappings, queue_id, body)
+    position = _add_to_queue(queue_mappings, queue_id, body)
     return dict(
         status=f"Data with saved in queue {queue_id}.",
         sh256_hash=body_hash,
+        position_in_queue=position,
     )
 
 
