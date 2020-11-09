@@ -11,6 +11,17 @@ debug=1 ./start-proxy.sh
 # Navigate to localhost:8000/docs
 ```
 
+### Azure
+
+- Add custom start command with Settings > Configuration > General settings > Startup Command
+
+  ```bash
+  start-proxy.sh
+  ```
+
+- Set env variables for the authentication via Settings > Configuration > "+ Application Setting".
+- Goto Configuration > General settings > FTP state > Disable.
+
 ## Test
 
 ```bash
@@ -34,5 +45,31 @@ curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept: application/j
 
 ## TODOs
 
+## CI/CD
+
+- Consider options below (focus on credit card free, no free access expiry and longer daily/monthly quotas). Search for "cloud always free tier comparison 2020":
+  - https://www.oracle.com/cloud/free/.
+    - Oracle gives free DBs.
+  - https://cloud.google.com/free/
+    - Might have good ML APIs.
+    - Multiple free services.
+  - https://www.heroku.com/managed-data-services
+  - https://www.ibm.com/cloud/free
+  - digitalocean.
+  - cloudflare.
+  - ...
+- Move to dockerfile based deployment method.
+- Write CLI based (e.g. `awscli`) scripts to speed up configuration. Stick to auto image deployment from dockerhub.
 - Adopt test github workflow and lint+test in build script from https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
 - Disable FTP based file access for repo. Prevents protected information from leaking.
+
+## Code
+
+- Move all data persistance to data_persistance.py and reuse the mapped queue class for slack endpoints.
+- Use single class for basic auth depends and init username/password from object's init.
+- Add websocket client support instead of the GET endpoints so downstream applicatins don't so `while true`s.
+- Per generic data queue authentication and signed token issuance.
+
+## Testing
+
+- Add `production_tests` with `production_secrets.secret` file to test production instances.

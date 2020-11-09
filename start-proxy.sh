@@ -53,7 +53,7 @@ rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
 
 poetry run gunicorn \
     --bind=0.0.0.0:8000 \
-    --workers 2 \
+    --workers 4 \
     --worker-class uvicorn.workers.UvicornWorker \
     --log-level info \
     --log-file /tmp/data-proxy.log \
