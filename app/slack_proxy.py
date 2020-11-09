@@ -21,14 +21,16 @@ _PASSWORD = environ.get("SLACK_PROXY_PASSWORD")
 # See https://api.slack.com/authentication/verifying-requests-from-slack#verifying-requests-from-slack-using-signing-secrets__a-recipe-for-security__step-by-step-walk-through-for-validating-a-request
 _SLACK_VERIFICATION_TOKEN = environ.get("SLACK_VERIFICATION_TOKEN")
 
-# Use a file system persisted FIFO queue that uses sqllite internally.
-# TODO check approx memory usage per event and restrict size
-_EVENT_QUEUE: persistqueue.SQLiteQueue = persistqueue.SQLiteQueue(
-    path=environ.get("SLACK_EVENT_DB_PATH"),
-    auto_commit=True,
-    multithreading=True,
-    timeout=30,  # wait upto 30 sec to acquire a DB lock.
-)
+
+def _get_event_queue() -> persistqueue.SQLiteQueue:
+    # Use a file system persisted FIFO queue that uses sqllite internally.
+    # TODO check approx memory usage per event and restrict size
+    return persistqueue.SQLiteQueue(
+        path=environ.get("SLACK_EVENT_DB_PATH"),
+        auto_commit=True,
+        multithreading=True,
+        timeout=30,  # wait upto 30 sec to acquire a DB lock.
+    )
 
 
 def get_verified_username(credentials: HTTPBasicCredentials = Depends(security)):
@@ -53,6 +55,7 @@ def get_verified_username(credentials: HTTPBasicCredentials = Depends(security))
 @router.post("/event")
 async def send_event(
     body: Any = Body(...),
+    event_queue: persistqueue.SQLiteQueue = Depends(_get_event_queue),
 ):
     """
     Endpoint for slack events API verification and event ingestion.
@@ -83,7 +86,7 @@ async def send_event(
         )
 
     logging.info(f"Adding payload {body} to slack event queue.")
-    _EVENT_QUEUE.put(body)
+    event_queue.put(body)
 
     return JSONResponse(
         status_code=status.HTTP_200_OK, content=dict(status="Event saved.")
@@ -100,11 +103,12 @@ async def send_event(
 )
 def get_latest_event(
     username: str = Depends(get_verified_username),
+    event_queue: persistqueue.SQLiteQueue = Depends(_get_event_queue),
 ):
     """
     ...
     """
-    if _EVENT_QUEUE.size == 0:
+    if event_queue.size == 0:
         return JSONResponse(
             status_code=status.HTTP_204_NO_CONTENT,
             content="No available events present.",
@@ -113,6 +117,6 @@ def get_latest_event(
     log.info(f"Sending latest slack event to user {username}")
 
     return dict(
-        event=_EVENT_QUEUE.get(),
-        events_left_in_queue=_EVENT_QUEUE.size,
+        event=event_queue.get(),
+        events_left_in_queue=event_queue.size,
     )
