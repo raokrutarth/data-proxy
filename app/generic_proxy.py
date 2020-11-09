@@ -33,7 +33,7 @@ _PASSWORD = environ.get("GENERIC_PROXY_PASSWORD")
 def _get_queue_mapper_db_sesh() -> persistqueue.PDict:
 
     db_path = environ.get("GENERIC_EVENT_DB_PATH")
-    assert db_path is not None, f"Invalid queue db path: {db_path}"
+    assert db_path is not None, f"Invalid queue mapping db path: {db_path}"
     # dict containing queue ID to persist-queue path
     return persistqueue.PDict(
         path=db_path,
@@ -125,13 +125,13 @@ def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: di
 async def send_data(
     background_tasks: BackgroundTasks,
     body: Any = Body(...),
+    queue_id: str = Path(
+        ..., title="Queue ID", description="ID to uniquely identify a data queue."
+    ),
     do_aync: bool = Query(
         True,
         title="Async",
         description="When true, servers responds after a successful data save.",
-    ),
-    queue_id: str = Path(
-        ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
     username: str = Depends(get_verified_username),
     queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh),
@@ -170,7 +170,7 @@ async def send_data(
     ),
     description="Returns the least recent item POST'd into the queue along with a hash of the object for sanity checks.",
 )
-def get_latest_event(
+def get_fifo_data(
     username: str = Depends(get_verified_username),
     queue_id: str = Path(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
