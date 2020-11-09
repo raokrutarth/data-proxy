@@ -2,7 +2,7 @@ import logging
 import sys
 
 from fastapi import FastAPI, status
-from generic_proxy import router as generic_router
+# from generic_proxy import router as generic_router
 from slack_proxy import router as slack_router
 from starlette.responses import HTMLResponse
 
@@ -59,7 +59,7 @@ app.include_router(
     prefix="/slack_poxy",
 )
 
-app.include_router(
-    generic_router,
-    prefix="/generic_proxy",
-)
+# app.include_router(
+#     generic_router,
+#     prefix="/generic_proxy",
+# )
