@@ -43,18 +43,18 @@ rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
 
 # Using uvicorn given gunicorn uses multiple proceses and that breaks the
 # internal persistant-queue library.
-poetry run uvicorn \
-    --workers 4 \
-    --host 0.0.0.0 \
-    --port 8000 \
-    --log-level info \
-    --reload \
-    main:app | tee server.log
-
-# poetry run gunicorn \
-#     --bind=0.0.0.0:8000 \
-#     --workers 2 \
-#     --worker-class uvicorn.workers.UvicornWorker \
+# poetry run uvicorn \
+#     --workers 4 \
+#     --host 0.0.0.0 \
+#     --port 8000 \
 #     --log-level info \
-#     --log-file /tmp/data-proxy.log \
-#     main:app
+#     --reload \
+#     main:app | tee server.log
+
+poetry run gunicorn \
+    --bind=0.0.0.0:8000 \
+    --workers 2 \
+    --worker-class uvicorn.workers.UvicornWorker \
+    --log-level info \
+    --log-file /tmp/data-proxy.log \
+    main:app
