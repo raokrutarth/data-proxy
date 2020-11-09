@@ -2,7 +2,6 @@ import logging
 import secrets
 from os import environ
 from typing import Any
-from hashlib import blake2b
 
 import persistqueue
 from fastapi import APIRouter, Body, Depends, HTTPException, status
