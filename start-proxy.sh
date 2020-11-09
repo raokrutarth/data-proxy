@@ -52,7 +52,7 @@ rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
 # Using uvicorn given gunicorn uses multiple proceses and that breaks the
 # internal persistant-queue library.
 poetry run uvicorn \
-    --workers 4 \
+    --workers 1 \
     --host 0.0.0.0 \
     --port 8000 \
     --log-level info \
