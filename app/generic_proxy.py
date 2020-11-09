@@ -138,7 +138,7 @@ async def send_data(
     queue_id: str = Path(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
-    do_aync: bool = Query(
+    do_async: bool = Query(
         True,
         title="Async",
         description="When true, waits for the data to be persisted before responding.",
@@ -154,9 +154,9 @@ async def send_data(
     body_hash = alg.hexdigest()
 
     logging.info(
-        f"User {username} requested to add payload with hash {body_hash} to generic event queue {queue_id}. Async enabled: {do_aync}"
+        f"User {username} requested to add payload with hash {body_hash} to generic event queue {queue_id}. Async enabled: {do_async}"
     )
-    if do_aync:
+    if do_async:
         background_tasks.add_task(_add_to_queue, queue_mappings, queue_id, body)
         return dict(
             status=f"Data scheduled to be saved in queue {queue_id}.",
