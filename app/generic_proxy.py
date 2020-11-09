@@ -1,5 +1,7 @@
+import json
 import logging
 import secrets
+from hashlib import sha256
 from os import environ
 from os.path import join
 from typing import Any, Tuple
@@ -13,6 +15,7 @@ from fastapi import (
     Depends,
     HTTPException,
     Path,
+    Query,
     status,
 )
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
@@ -67,7 +70,7 @@ def _get_queue_details(
     return "", ""
 
 
-def _get_queue_sesssion(queue_name: str, queue_path: str) -> persistqueue.SQLiteQueue:
+def _get_queue_session(queue_name: str, queue_path: str) -> persistqueue.SQLiteQueue:
     """
     Given a queue name and DB path, return the queue object.
     """
@@ -99,26 +102,34 @@ def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: di
             f"Creating new data queue with name {q_name} with DB in {q_path} for queue ID {queue_id}"
         )
     else:
-        log.info(f"Found queue with ID {queue_id}")
+        log.debug(f"Found queue with ID {queue_id}")
 
-    queue = _get_queue_sesssion(q_name, q_path)
+    queue = _get_queue_session(q_name, q_path)
     queue.put(payload)
-    log.info(f"Added payload {payload} to queue with queue ID {queue_id}")
+    log.info(f"Added payload to queue with queue ID {queue_id}")
+    log.debug(f"Payload values: {payload}")
 
 
 @router.post(
     "/{queue_id}/data",
     response_model=create_model(
-        "DataIngestionResponse",
+        "GenericDataProxyIngestResponse",
         status=(
             str,
             ...,
         ),
+        sh256_hash=(str, ...),
     ),
+    description="Saves the request's body and returns the hash of the body for future content verification.",
 )
 async def send_data(
     background_tasks: BackgroundTasks,
     body: Any = Body(...),
+    do_aync: bool = Query(
+        True,
+        title="Async",
+        description="When true, servers responds after a successful data save.",
+    ),
     queue_id: str = Path(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
@@ -128,21 +139,36 @@ async def send_data(
     """
     Data ingestion.
     """
-    logging.info(
-        f"User {username} requested to add payload {body} to generic event queue {queue_id}."
-    )
-    background_tasks.add_task(_add_to_queue, queue_mappings, queue_id, body)
+    alg = sha256()
+    alg.update(json.dumps(body, sort_keys=True).encode())
+    body_hash = alg.hexdigest()
 
-    return dict(status=f"Event scheduled to be saved in queue {queue_id}.")
+    logging.debug(
+        f"User {username} requested to add payload {body} with hash {body_hash} to generic event queue {queue_id}."
+    )
+    if do_aync:
+        background_tasks.add_task(_add_to_queue, queue_mappings, queue_id, body)
+        return dict(
+            status=f"Data scheduled to be saved in queue {queue_id}.",
+            sh256_hash=body_hash,
+        )
+
+    _add_to_queue(queue_mappings, queue_id, body)
+    return dict(
+        status=f"Data with saved in queue {queue_id}.",
+        sh256_hash=body_hash,
+    )
 
 
 @router.get(
     "/{queue_id}/data",
     response_model=create_model(
-        "DataProxyGetResponse",
-        data=(dict, ...),
+        "GenericDataProxyGetResponse",
+        data=(Any, ...),
+        sha256_hash=(str, ...),
         items_left_in_queue=(int, ...),
     ),
+    description="Returns the least recent item POST'd into the queue along with a hash of the object for sanity checks.",
 )
 def get_latest_event(
     username: str = Depends(get_verified_username),
@@ -161,7 +187,7 @@ def get_latest_event(
             detail=f"Queue with ID {queue_id} not present.",
         )
 
-    queue = _get_queue_sesssion(q_name, q_path)
+    queue = _get_queue_session(q_name, q_path)
     if queue.size == 0:
         raise HTTPException(
             status_code=status.HTTP_204_NO_CONTENT,
@@ -169,8 +195,13 @@ def get_latest_event(
         )
 
     log.info(f"Sending least recent payload from queue {queue_id} to user {username}")
+    payload = queue.get()
+    alg = sha256()
+    alg.update(json.dumps(payload, sort_keys=True).encode())
+    body_hash = alg.hexdigest()
 
     return dict(
-        data=queue.get(),
+        data=payload,
+        sha256_hash=body_hash,
         items_left_in_queue=queue.size,
     )
