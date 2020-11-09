@@ -26,7 +26,7 @@ if [[ -z "${debug}" ]]; then
     #   - Auth env vars come from the Azure runtime.
     # TODO store log file in secure location
     poetry run gunicorn \
-        --bind=0.0.0.0:8000 \
+        --bind=0.0.0.0 \
         --workers 4 \
         --worker-class uvicorn.workers.UvicornWorker \
         --log-level info \
