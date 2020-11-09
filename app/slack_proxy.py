@@ -2,6 +2,7 @@ import logging
 import secrets
 from os import environ
 from typing import Any
+from hashlib import blake2b
 
 import persistqueue
 from fastapi import APIRouter, Body, Depends, HTTPException, status
@@ -22,11 +23,14 @@ _PASSWORD = environ.get("SLACK_PROXY_PASSWORD")
 _SLACK_VERIFICATION_TOKEN = environ.get("SLACK_VERIFICATION_TOKEN")
 
 
-def _get_event_queue() -> persistqueue.SQLiteQueue:
+def _get_queue_session() -> persistqueue.SQLiteQueue:
     # Use a file system persisted FIFO queue that uses sqllite internally.
     # TODO check approx memory usage per event and restrict size
+    db_path = environ.get("SLACK_EVENT_DB_PATH")
+    assert db_path is not None, f"Invalid queue db path: {db_path}"
+
     return persistqueue.SQLiteQueue(
-        path=environ.get("SLACK_EVENT_DB_PATH"),
+        path=db_path,
         auto_commit=True,
         multithreading=True,
         timeout=30,  # wait upto 30 sec to acquire a DB lock.
@@ -55,7 +59,7 @@ def get_verified_username(credentials: HTTPBasicCredentials = Depends(security))
 @router.post("/event")
 async def send_event(
     body: Any = Body(...),
-    event_queue: persistqueue.SQLiteQueue = Depends(_get_event_queue),
+    event_queue: persistqueue.SQLiteQueue = Depends(_get_queue_session),
 ):
     """
     Endpoint for slack events API verification and event ingestion.
@@ -103,7 +107,7 @@ async def send_event(
 )
 def get_latest_event(
     username: str = Depends(get_verified_username),
-    event_queue: persistqueue.SQLiteQueue = Depends(_get_event_queue),
+    event_queue: persistqueue.SQLiteQueue = Depends(_get_queue_session),
 ):
     """
     ...

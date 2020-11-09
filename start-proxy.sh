@@ -17,9 +17,6 @@ export PYTHONPATH=${PYTHONPATH}:"$(pwd)/app"
 if [[ -z "${debug}" ]]; then
     echo "Running in production mode."
 
-    # Remove old DB data
-    rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
-
     # Production runtime
     #   - Use gunicorn+uvicorn for best performance. It defaults to port 8000. Which is what azure expects.
     #   - Use 2 workers given the free tier ony provisions 1 core.
@@ -32,11 +29,11 @@ if [[ -z "${debug}" ]]; then
     #     --log-level info \
     #     --log-file /tmp/data-proxy.log \
     #     main:app
-    poetry run uvicorn \
-        --host 0.0.0.0 \
-        --port 8000 \
-        --log-level info \
-        main:app
+    # poetry run uvicorn \
+    #     --host 0.0.0.0 \
+    #     --port 8000 \
+    #     --log-level info \
+    #     main:app
 
 else
     echo "Running in development mode."
@@ -62,10 +59,14 @@ else
     #     --worker-class uvicorn.workers.UvicornWorker \
     #     --log-level info \
     #     main:app
-    poetry run uvicorn \
-        --reload \
-        --host 0.0.0.0 \
-        --port 8000 \
-        --log-level debug \
-        main:app
 fi
+
+# Remove old DB data
+rm -rf ${SLACK_EVENT_DB_PATH} ${GENERIC_EVENT_DB_PATH} || true
+
+poetry run uvicorn \
+    --reload \
+    --host 0.0.0.0 \
+    --port 8000 \
+    --log-level debug \
+    main:app
