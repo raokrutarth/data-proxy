@@ -2,7 +2,6 @@ import logging
 import sys
 
 from fastapi import FastAPI, status
-
 from generic_proxy import router as generic_router
 from slack_proxy import router as slack_router
 from starlette.responses import HTMLResponse

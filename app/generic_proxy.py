@@ -58,7 +58,9 @@ def get_verified_username(credentials: HTTPBasicCredentials = Depends(security))
     return credentials.username
 
 
-def _get_queue_details(queue_mappings: persistqueue.PDict, queue_id: str) -> Tuple[str, str]:
+def _get_queue_details(
+    queue_mappings: persistqueue.PDict, queue_id: str
+) -> Tuple[str, str]:
     if queue_id in queue_mappings:
         queue_name, queue_path = queue_mappings[queue_id]
         return queue_name, queue_path
@@ -87,7 +89,9 @@ def _add_to_queue(queue_mappings: persistqueue.PDict, queue_id: str, payload: di
 
     if not q_name:
         # queue doesn't exist
-        log.info(f"Creating new queue. Data map held in directory: {queue_mappings.path}")
+        log.info(
+            f"Creating new queue. Data map held in directory: {queue_mappings.path}"
+        )
         q_name = f"generic_proxy_queue_{str(uuid1())}"
         q_path = join(queue_mappings.path, q_name)
         queue_mappings[queue_id] = (q_name, q_path)
@@ -119,7 +123,7 @@ async def send_data(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
     username: str = Depends(get_verified_username),
-    queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh)
+    queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh),
 ):
     """
     Data ingestion.
@@ -145,7 +149,7 @@ def get_latest_event(
     queue_id: str = Path(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
-    queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh)
+    queue_mappings: persistqueue.PDict = Depends(_get_queue_mapper_db_sesh),
 ):
     """
     Data access.
