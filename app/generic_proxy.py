@@ -139,7 +139,7 @@ async def send_data(
         ..., title="Queue ID", description="ID to uniquely identify a data queue."
     ),
     do_async: bool = Query(
-        True,
+        False,
         title="Async",
         description="When true, waits for the data to be persisted before responding.",
     ),
@@ -166,7 +166,7 @@ async def send_data(
 
     position = _add_to_queue(queue_mappings, queue_id, body)
     return dict(
-        status=f"Data with saved in queue {queue_id}.",
+        status=f"Data saved in queue {queue_id}.",
         sh256_hash=body_hash,
         position_in_queue=position,
     )
