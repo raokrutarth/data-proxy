@@ -1,17 +1,13 @@
+#!/bin/bash -ex
 
-# run this script on could machine shell to make sure the queue library works.
-
-cd /home/site/wwwroot
+# run this script on the cloud machine terminal to make sure the data persistance library works.
 
 python -m pip install persist-queue
 
 python -c '''
 import persistqueue
 def _get_queue_session() -> persistqueue.SQLiteQueue:
-    # Use a file system persisted FIFO queue that uses sqllite internally.
-    # TODO check approx memory usage per event and restrict size
-    db_path = "/tmp/lll-test-q"
-    assert db_path is not None, f"Invalid queue db path: {db_path}"
+    db_path = "/tmp/sanity-test-queue"
 
     return persistqueue.SQLiteQueue(
         path=db_path,
@@ -23,7 +19,7 @@ def _get_queue_session() -> persistqueue.SQLiteQueue:
 
 q = _get_queue_session()
 q.put("lll")
-q.get()
+print(q.get())
 '''
 
 python -c '''
@@ -32,22 +28,21 @@ import persistqueue
 
 def _get_queue_mapper_db_sesh() -> persistqueue.PDict:
 
-    db_path = "ppp-test-db"
-    assert db_path is not None, f"Invalid queue mapping db path: {db_path}"
-    # dict containing queue ID to persist-queue path
+    db_path = "/tmp/sanity-test-dict"
+
     return persistqueue.PDict(
         path=db_path,
-        name="/tmp/generic_proxy_queues_mapppings",
         multithreading=True,
     )
 
 
 p = _get_queue_mapper_db_sesh()
 p["oo"] = (42, 99)
+print(p["oo"])
 '''
 
 
-# TODO so far; the library gets this error when trying to initalize sqllite in every dir. I.e. unable to write DB file.
+# The library gets this error when trying to initalize sqllite if the file system does not allow it.
 
 # Traceback (most recent call last):
 #   File "<string>", line 17, in <module>
