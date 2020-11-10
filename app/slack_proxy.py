@@ -18,7 +18,7 @@ _USERNAME = environ.get("SLACK_PROXY_USERNAME")
 _PASSWORD = environ.get("SLACK_PROXY_PASSWORD")
 
 # Slack verification token to make sure only Slack can publish to the POST endpoint.
-# See https://api.slack.com/authentication/verifying-requests-from-slack#verifying-requests-from-slack-using-signing-secrets__a-recipe-for-security__step-by-step-walk-through-for-validating-a-request
+# See https://api.slack.com/authentication/verifying-requests-from-slack
 _SLACK_VERIFICATION_TOKEN = environ.get("SLACK_VERIFICATION_TOKEN")
 
 
@@ -36,7 +36,7 @@ def _get_queue_session() -> persistqueue.SQLiteQueue:
     )
 
 
-def get_verified_username(credentials: HTTPBasicCredentials = Depends(security)):
+def get_verified_username(credentials: HTTPBasicCredentials = Depends(security)) -> str:
     if _USERNAME is None or _PASSWORD is None:
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -71,7 +71,7 @@ async def send_event(
     if _SLACK_VERIFICATION_TOKEN is None:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Missing verification token to accept new event.",
+            detail="Missing verification token. Unable to accept new event.",
         )
     if not secrets.compare_digest(body["token"], _SLACK_VERIFICATION_TOKEN):
         raise HTTPException(
@@ -88,7 +88,8 @@ async def send_event(
             ),
         )
 
-    logging.info(f"Adding payload {body} to slack event queue.")
+    log.info("Adding payload to slack event queue.")
+    log.debug("payload value: %s", body)
     event_queue.put(body)
 
     return JSONResponse(
