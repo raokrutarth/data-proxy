@@ -1,49 +1,8 @@
 #!/bin/bash -ex
 
-# run this script on the cloud machine terminal to make sure the data persistance library works.
+# Run this script on the cloud machine terminal to make sure the data persistance library works.
 
-python -m pip install persist-queue
-
-python -c '''
-import persistqueue
-def _get_queue_session() -> persistqueue.SQLiteQueue:
-    db_path = "/tmp/sanity-test-queue"
-
-    return persistqueue.SQLiteQueue(
-        path=db_path,
-        auto_commit=False,
-        multithreading=True,
-        timeout=8,  # wait upto 30 sec to acquire a DB lock.
-    )
-
-
-q = _get_queue_session()
-q.put("lll")
-print(q.get())
-'''
-
-python -c '''
-import persistqueue
-
-
-def _get_queue_mapper_db_sesh() -> persistqueue.PDict:
-
-    db_path = "/tmp/sanity-test-dict"
-
-    return persistqueue.PDict(
-        path=db_path,
-        multithreading=True,
-    )
-
-
-p = _get_queue_mapper_db_sesh()
-p["oo"] = (42, 99)
-print(p["oo"])
-'''
-
-
-# The library gets this error when trying to initalize sqllite if the file system does not allow it.
-
+# The library gets this (poorly designed) error when trying to initalize sqllite if the file system does not allow it.
 # Traceback (most recent call last):
 #   File "<string>", line 17, in <module>
 #   File "<string>", line 10, in _get_queue_mapper_db_sesh
@@ -61,3 +20,41 @@ print(p["oo"])
 #   File "/opt/python/3.8.5/lib/python3.8/site-packages/persistqueue/sqlbase.py", line 202, in __del__
 #     self._getter.close()
 # AttributeError: 'PDict' object has no attribute '_getter'
+
+python -m pip install persist-queue
+
+python -c '''
+import persistqueue
+def _get_queue_session() -> persistqueue.SQLiteQueue:
+
+    db_path = "/tmp/sanity-test-queue"
+
+    return persistqueue.SQLiteQueue(
+        path=db_path,
+        auto_commit=True,
+        multithreading=True,
+        timeout=10,
+    )
+
+
+q = _get_queue_session()
+q.put("lll")
+print(q.get())
+'''
+
+python -c '''
+import persistqueue
+def _get_queue_mapper_db_sesh() -> persistqueue.PDict:
+
+    db_path = "/tmp/sanity-test-dict"
+
+    return persistqueue.PDict(
+        path=db_path,
+        multithreading=True,
+    )
+
+
+p = _get_queue_mapper_db_sesh()
+p["oo"] = (42, 99)
+print(p["oo"])
+'''
