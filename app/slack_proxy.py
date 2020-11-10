@@ -104,7 +104,7 @@ async def send_event(
         events_left_in_queue=(int, ...),
     ),
 )
-def get_latest_event(
+def get_fifo_event(
     username: str = Depends(get_verified_username),
     event_queue: persistqueue.SQLiteQueue = Depends(_get_queue_session),
 ):
