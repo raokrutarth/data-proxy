@@ -118,7 +118,7 @@ def get_fifo_event(
             content="No available events present.",
         )
 
-    log.info(f"Sending least recent slack event to user {username}")
+    log.info(f"Sending FIFO slack event to user {username}")
 
     return dict(
         event=event_queue.get(),
