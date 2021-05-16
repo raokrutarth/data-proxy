@@ -29,7 +29,7 @@ else
 
     export SLACK_PROXY_USERNAME=dev
     export SLACK_PROXY_PASSWORD=dev
-    export SLACK_VERIFICATION_TOKEN=tk
+    export SLACK_VERIFICATION_TOKEN=dev
     export SLACK_EVENT_DB_PATH="/tmp/slack_proxy_queue_db"
 
     export GENERIC_PROXY_USERNAME=dev

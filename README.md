@@ -32,10 +32,10 @@ curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept: application/j
 
 ## Resources
 
-- https://github.com/windson/fastapi/tree/fastapi-postgresql-azure-deploy
-- https://github.com/MicrosoftDocs/azure-dev-docs/blob/master/articles/python/tutorial-deploy-app-service-on-linux-04.md
-- https://github.com/MicrosoftDocs/azure-dev-docs/issues/142
-- Proper pre-push hooks: https://githooks.com/
+- <https://github.com/windson/fastapi/tree/fastapi-postgresql-azure-deploy>
+- <https://github.com/MicrosoftDocs/azure-dev-docs/blob/master/articles/python/tutorial-deploy-app-service-on-linux-04.md>
+- <https://github.com/MicrosoftDocs/azure-dev-docs/issues/142>
+- Proper pre-push hooks: <https://githooks.com/>
 
   ```bash
   echo "./scripts/format_and_lint.sh" > .git/hooks/pre-commit
@@ -48,24 +48,26 @@ curl -X POST "https://${portal_url}/slack_poxy/event" -H  "accept: application/j
 ## CI/CD
 
 - Consider options below (focus on credit card free, no free access expiry and longer daily/monthly quotas). Search for "cloud always free tier comparison 2020":
-  - https://www.oracle.com/cloud/free/.
+  - <https://www.oracle.com/cloud/free/>
     - Oracle gives free DBs.
-  - https://cloud.google.com/free/
+  - <https://cloud.google.com/free/>
     - Might have good ML APIs.
     - Multiple free services.
-  - https://www.heroku.com/managed-data-services
-  - https://www.ibm.com/cloud/free
+  - <https://www.heroku.com/managed-data-services>
+  - <https://www.ibm.com/cloud/free>
   - digitalocean.
   - cloudflare.
   - ...
 - Move to dockerfile based deployment method.
 - Write CLI based (e.g. `awscli`) scripts to speed up configuration. Stick to auto image deployment from dockerhub.
-- Adopt test github workflow and lint+test in build script from https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker.
+- Adopt test github workflow and lint+test in build script from <https://github.com/tiangolo/uvicorn-gunicorn-fastapi-docker>.
 - Disable FTP based file access for repo. Prevents protected information from leaking.
 
 ## Code
 
 - Move all data persistance to data_persistance.py and reuse the mapped queue class for slack endpoints.
+- Use <https://github.com/rednafi/konfik> for config parsing.
+- Use <https://github.com/sourcery-ai/python-best-practices-cookiecutter/blob/master/%7B%7Bcookiecutter.repo_name%7D%7D/.github/workflows/test.yml> for all python best practices automation.
 - Use single class for basic auth depends and init username/password from object's init.
 - Add websocket client support instead of the GET endpoints so downstream applicatins don't so `while true`s.
 - Per generic data queue authentication and signed token issuance.
